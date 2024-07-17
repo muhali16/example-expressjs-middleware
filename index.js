@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import methodOverride from "method-override";
+import ErrorHandler from "./ErrorHandler.js";
 
 let userSession = false;
 const app = express();
@@ -37,9 +38,11 @@ const authMiddleware = (req, res, next) => {
   console.log(userSession);
   if (userSession == true) {
     next();
-  } else {
-    res.redirect("/login");
   }
+
+  res.status(401);
+  throw new ErrorHandler();
+  // res.redirect("/login");
 };
 
 app.get("/", (req, res) => {
@@ -92,6 +95,11 @@ defining a route in the Express application for handling GET requests to the "/a
 Here's what it does: */
 app.get("/admin", authMiddleware, (req, res) => {
   res.send("Admin Page");
+});
+
+app.use((err, req, res, next) => {
+  const { status = 500, message = "Something went wrong" } = err;
+  res.status(status || 500).send(message);
 });
 
 /* The `app.use((req, res, next) => { res.status(404).send("Page not found"); });` code snippet is
